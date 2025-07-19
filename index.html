@@ -2,118 +2,103 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>¿Sobrevivirías?</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Explorador 3D</title>
   <style>
-    body {
-      background: black;
+    body { margin: 0; overflow: hidden; }
+    canvas { display: block; }
+    #instrucciones {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0,0,0,0.6);
       color: white;
-      font-family: 'Arial', sans-serif;
-      padding: 30px;
-      text-align: center;
-    }
-
-    .game-box {
-      max-width: 600px;
-      margin: auto;
-      background: #222;
-      border-radius: 15px;
-      padding: 20px;
-      box-shadow: 0 0 20px #0ff;
-    }
-
-    h1 {
-      font-size: 2.5em;
-      margin-bottom: 10px;
-    }
-
-    .story {
-      font-size: 1.2em;
-      margin-bottom: 30px;
-    }
-
-    button {
-      background: #0ff;
-      border: none;
-      padding: 12px 20px;
-      font-size: 1.1em;
-      border-radius: 8px;
-      margin: 10px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    button:hover {
-      background: #00c2c2;
+      padding: 10px;
+      font-family: sans-serif;
+      border-radius: 10px;
+      z-index: 1;
     }
   </style>
 </head>
 <body>
-  <div class="game-box">
-    <h1>¿Sobrevivirías?</h1>
-    <div class="story" id="story">
-      Despiertas en una habitación oscura. No recuerdas cómo llegaste.  
-      Hay una puerta frente a ti y un teléfono viejo sonando en una mesa.
-    </div>
-    <div id="choices">
-      <button onclick="choose('puerta')">Abrir la puerta</button>
-      <button onclick="choose('telefono')">Contestar el teléfono</button>
-    </div>
-  </div>
+<div id="instrucciones">
+  Usa W, A, S, D para moverte. Mouse para mirar.
+</div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.154.0/examples/js/controls/PointerLockControls.js"></script>
+<script>
+  // Escena y cámara
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x87CEEB); // Cielo azul
 
-  <script>
-    function choose(opcion) {
-      const story = document.getElementById('story');
-      const choices = document.getElementById('choices');
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
 
-      if (opcion === 'puerta') {
-        story.innerHTML = "La puerta cruje al abrirse... un pasillo largo y oscuro se extiende delante de ti. A lo lejos escuchas pasos.";
-        choices.innerHTML = `
-          <button onclick="choose('correr')">Correr hacia el pasillo</button>
-          <button onclick="choose('cerrar')">Cerrar la puerta rápido</button>
-        `;
-      }
+  // Suelo
+  const floorGeometry = new THREE.PlaneGeometry(100, 100);
+  const floorMaterial = new THREE.MeshPhongMaterial({ color: 0x228B22 }); // verde
+  const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+  floor.rotation.x = -Math.PI / 2;
+  scene.add(floor);
 
-      else if (opcion === 'telefono') {
-        story.innerHTML = "Una voz susurra: 'Corre... no confíes en la puerta'. Luego el teléfono se apaga.";
-        choices.innerHTML = `
-          <button onclick="choose('huir')">Buscar otra salida</button>
-          <button onclick="choose('esperar')">Quedarte y esperar</button>
-        `;
-      }
+  // Luz
+  const light = new THREE.DirectionalLight(0xffffff, 1);
+  light.position.set(10, 20, 10);
+  scene.add(light);
 
-      else if (opcion === 'correr') {
-        story.innerHTML = "Tropiezas con algo... una figura se mueve rápidamente y todo se vuelve negro. 💀 Final 1: Curiosidad fatal.";
-        choices.innerHTML = `<button onclick="location.reload()">Reintentar</button>`;
-      }
+  // Cubos aleatorios
+  for (let i = 0; i < 30; i++) {
+    const cube = new THREE.Mesh(
+      new THREE.BoxGeometry(2, 2, 2),
+      new THREE.MeshPhongMaterial({ color: Math.random() * 0xffffff })
+    );
+    cube.position.set(
+      (Math.random() - 0.5) * 80,
+      1,
+      (Math.random() - 0.5) * 80
+    );
+    scene.add(cube);
+  }
 
-      else if (opcion === 'cerrar') {
-        story.innerHTML = "Al cerrar la puerta, notas una trampilla en el suelo. ¿La abres?";
-        choices.innerHTML = `
-          <button onclick="choose('trampilla')">Sí, abrir trampilla</button>
-          <button onclick="choose('ignorar')">No, mejor no</button>
-        `;
-      }
+  // Controles
+  const controls = new THREE.PointerLockControls(camera, document.body);
+  document.body.addEventListener('click', () => controls.lock());
+  scene.add(controls.getObject());
 
-      else if (opcion === 'huir') {
-        story.innerHTML = "Encuentras una ventana rota. Escapas. Estás libre... por ahora. 🟢 Final 2: Superviviente.";
-        choices.innerHTML = `<button onclick="location.reload()">Jugar otra vez</button>`;
-      }
+  const velocity = new THREE.Vector3();
+  const keys = {};
 
-      else if (opcion === 'esperar') {
-        story.innerHTML = "La habitación comienza a llenarse de humo. Debiste moverte. 💀 Final 3: Espera mortal.";
-        choices.innerHTML = `<button onclick="location.reload()">Intentar de nuevo</button>`;
-      }
+  document.addEventListener('keydown', e => keys[e.code] = true);
+  document.addEventListener('keyup', e => keys[e.code] = false);
 
-      else if (opcion === 'trampilla') {
-        story.innerHTML = "Bajas por la trampilla y encuentras un mapa... Has desbloqueado el siguiente nivel. 🧠 Final 4: El que piensa, gana.";
-        choices.innerHTML = `<button onclick="location.reload()">Jugar otra vez</button>`;
-      }
+  camera.position.y = 1.6; // altura de la "cabeza"
 
-      else if (opcion === 'ignorar') {
-        story.innerHTML = "Te quedas en la habitación. Después de horas, todo se detiene. Nadie viene. 💀 Final 5: Silencio eterno.";
-        choices.innerHTML = `<button onclick="location.reload()">Intentar otra historia</button>`;
-      }
+  // Animación
+  const clock = new THREE.Clock();
+  function animate() {
+    requestAnimationFrame(animate);
+
+    const delta = clock.getDelta();
+    velocity.set(0, 0, 0);
+    const speed = 10;
+
+    if (keys['KeyW']) velocity.z -= speed * delta;
+    if (keys['KeyS']) velocity.z += speed * delta;
+    if (keys['KeyA']) velocity.x -= speed * delta;
+    if (keys['KeyD']) velocity.x += speed * delta;
+
+    controls.moveRight(velocity.x);
+    controls.moveForward(velocity.z);
+
+    renderer.render(scene, camera);
+  }
+
+  animate();
+</script>
+</body>
+</html>
+
     }
   </script>
 </body>
