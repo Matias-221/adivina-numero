@@ -2,16 +2,24 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Adivina el Número PRO</title>
+  <title>¿Sobrevivirías?</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Juego interactivo para adivinar números, con niveles, puntaje y vidas.">
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to bottom right, #001f3f, #0074D9);
+      background: black;
       color: white;
+      font-family: 'Arial', sans-serif;
+      padding: 30px;
       text-align: center;
-      padding: 40px;
+    }
+
+    .game-box {
+      max-width: 600px;
+      margin: auto;
+      background: #222;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 0 20px #0ff;
     }
 
     h1 {
@@ -19,120 +27,93 @@
       margin-bottom: 10px;
     }
 
-    .game-box {
-      background-color: rgba(0, 0, 0, 0.5);
-      border-radius: 16px;
-      padding: 30px;
-      display: inline-block;
-      box-shadow: 0 0 20px rgba(255,255,255,0.2);
-    }
-
-    input[type="number"] {
+    .story {
       font-size: 1.2em;
-      padding: 10px;
-      border-radius: 10px;
-      border: none;
-      width: 80px;
+      margin-bottom: 30px;
     }
 
     button {
-      font-size: 1.2em;
-      padding: 10px 20px;
-      border-radius: 10px;
+      background: #0ff;
       border: none;
-      background-color: #2ECC40;
-      color: black;
-      margin-top: 10px;
-      cursor: pointer;
-    }
-
-    .status {
-      margin-top: 20px;
+      padding: 12px 20px;
       font-size: 1.1em;
+      border-radius: 8px;
+      margin: 10px;
+      cursor: pointer;
+      transition: 0.3s;
     }
 
-    .highlight {
-      color: yellow;
+    button:hover {
+      background: #00c2c2;
     }
   </style>
 </head>
 <body>
   <div class="game-box">
-    <h1>🎯 Adivina el Número PRO</h1>
-    <p>Estoy pensando en un número del <span id="min">1</span> al <span id="max">10</span>.</p>
-    <p>¿Cuál crees que es?</p>
-
-    <input type="number" id="guess" placeholder="Tu número">
-    <br>
-    <button onclick="checkGuess()">Adivinar</button>
-
-    <div class="status">
-      <p id="message"></p>
-      <p>❤️ Vidas: <span id="lives">3</span></p>
-      <p>⭐ Puntaje: <span id="score">0</span></p>
-      <p>🏆 Récord: <span id="highscore">0</span></p>
+    <h1>¿Sobrevivirías?</h1>
+    <div class="story" id="story">
+      Despiertas en una habitación oscura. No recuerdas cómo llegaste.  
+      Hay una puerta frente a ti y un teléfono viejo sonando en una mesa.
+    </div>
+    <div id="choices">
+      <button onclick="choose('puerta')">Abrir la puerta</button>
+      <button onclick="choose('telefono')">Contestar el teléfono</button>
     </div>
   </div>
 
   <script>
-    let min = 1;
-    let max = 10;
-    let target = getRandomNumber(min, max);
-    let lives = 3;
-    let score = 0;
-    let highscore = localStorage.getItem("highscore") || 0;
+    function choose(opcion) {
+      const story = document.getElementById('story');
+      const choices = document.getElementById('choices');
 
-    document.getElementById("highscore").textContent = highscore;
-
-    function getRandomNumber(min, max) {
-      return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-
-    function nextRound() {
-      min = 1;
-      max += 5;
-      lives = 3;
-      document.getElementById("min").textContent = min;
-      document.getElementById("max").textContent = max;
-      target = getRandomNumber(min, max);
-      document.getElementById("message").textContent = "¡Nueva ronda!";
-      document.getElementById("lives").textContent = lives;
-    }
-
-    function checkGuess() {
-      const guess = parseInt(document.getElementById("guess").value);
-      if (isNaN(guess)) {
-        document.getElementById("message").textContent = "❗ Ingresa un número válido.";
-        return;
+      if (opcion === 'puerta') {
+        story.innerHTML = "La puerta cruje al abrirse... un pasillo largo y oscuro se extiende delante de ti. A lo lejos escuchas pasos.";
+        choices.innerHTML = `
+          <button onclick="choose('correr')">Correr hacia el pasillo</button>
+          <button onclick="choose('cerrar')">Cerrar la puerta rápido</button>
+        `;
       }
 
-      if (guess === target) {
-        score++;
-        document.getElementById("score").textContent = score;
-        if (score > highscore) {
-          highscore = score;
-          localStorage.setItem("highscore", highscore);
-          document.getElementById("highscore").textContent = highscore;
-        }
-        document.getElementById("message").innerHTML = "✅ ¡Correcto! Pasas al siguiente nivel.";
-        nextRound();
-      } else {
-        lives--;
-        document.getElementById("lives").textContent = lives;
-        if (lives === 0) {
-          document.getElementById("message").innerHTML = `💀 Has perdido. El número era <span class="highlight">${target}</span>. Reiniciando juego...`;
-          score = 0;
-          max = 10;
-          setTimeout(() => {
-            document.getElementById("score").textContent = score;
-            nextRound();
-          }, 3000);
-        } else {
-          document.getElementById("message").textContent = guess < target ? "📉 Muy bajo" : "📈 Muy alto";
-        }
+      else if (opcion === 'telefono') {
+        story.innerHTML = "Una voz susurra: 'Corre... no confíes en la puerta'. Luego el teléfono se apaga.";
+        choices.innerHTML = `
+          <button onclick="choose('huir')">Buscar otra salida</button>
+          <button onclick="choose('esperar')">Quedarte y esperar</button>
+        `;
       }
 
-      document.getElementById("guess").value = "";
+      else if (opcion === 'correr') {
+        story.innerHTML = "Tropiezas con algo... una figura se mueve rápidamente y todo se vuelve negro. 💀 Final 1: Curiosidad fatal.";
+        choices.innerHTML = `<button onclick="location.reload()">Reintentar</button>`;
+      }
+
+      else if (opcion === 'cerrar') {
+        story.innerHTML = "Al cerrar la puerta, notas una trampilla en el suelo. ¿La abres?";
+        choices.innerHTML = `
+          <button onclick="choose('trampilla')">Sí, abrir trampilla</button>
+          <button onclick="choose('ignorar')">No, mejor no</button>
+        `;
+      }
+
+      else if (opcion === 'huir') {
+        story.innerHTML = "Encuentras una ventana rota. Escapas. Estás libre... por ahora. 🟢 Final 2: Superviviente.";
+        choices.innerHTML = `<button onclick="location.reload()">Jugar otra vez</button>`;
+      }
+
+      else if (opcion === 'esperar') {
+        story.innerHTML = "La habitación comienza a llenarse de humo. Debiste moverte. 💀 Final 3: Espera mortal.";
+        choices.innerHTML = `<button onclick="location.reload()">Intentar de nuevo</button>`;
+      }
+
+      else if (opcion === 'trampilla') {
+        story.innerHTML = "Bajas por la trampilla y encuentras un mapa... Has desbloqueado el siguiente nivel. 🧠 Final 4: El que piensa, gana.";
+        choices.innerHTML = `<button onclick="location.reload()">Jugar otra vez</button>`;
+      }
+
+      else if (opcion === 'ignorar') {
+        story.innerHTML = "Te quedas en la habitación. Después de horas, todo se detiene. Nadie viene. 💀 Final 5: Silencio eterno.";
+        choices.innerHTML = `<button onclick="location.reload()">Intentar otra historia</button>`;
+      }
     }
   </script>
 </body>
