@@ -2,40 +2,77 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Juego: Adivina el número</title>
+  <title>Adivina el número</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      background-color: #f2f2f2;
       padding: 50px;
+      background: #f7f7f7;
     }
-    #game {
+    #juego {
       background: white;
       padding: 30px;
       border-radius: 15px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
       max-width: 400px;
       margin: auto;
     }
-    input {
+    input, button {
+      font-size: 16px;
       padding: 10px;
-      font-size: 16px;
-      width: 100px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
       margin-top: 10px;
     }
-    #resultado {
+    #mensaje {
       margin-top: 20px;
       font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <div id="game">
-    <h2>🎲 Adivina el número (1 al 10)</h2>
-    <inpu
+
+  <div id="juego">
+    <h2>🎯 Adivina el número (1 al 10)</h2>
+    <input type="number" id="entrada" placeholder="Tu número" min="1" max="10" />
+    <br />
+    <button onclick="adivinar()">Probar</button>
+    <button onclick="reiniciar()">Reiniciar</button>
+    <p id="mensaje"></p>
+  </div>
+
+  <script>
+    let numeroSecreto = Math.floor(Math.random() * 10) + 1;
+    let intentos = 3;
+
+    function adivinar() {
+      const entrada = document.getElementById("entrada");
+      const mensaje = document.getElementById("mensaje");
+      const intento = parseInt(entrada.value);
+
+      if (isNaN(intento) || intento < 1 || intento > 10) {
+        mensaje.textContent = "❗ Ingresa un número válido entre 1 y 10.";
+        return;
+      }
+
+      if (intento === numeroSecreto) {
+        mensaje.textContent = "🎉 ¡Correcto! Adivinaste el número.";
+      } else {
+        intentos--;
+        if (intentos > 0) {
+          mensaje.textContent = `❌ Incorrecto. Te quedan ${intentos} intento(s).`;
+        } else {
+          mensaje.textContent = `😢 Se acabaron los intentos. El número era ${numeroSecreto}.`;
+        }
+      }
+    }
+
+    function reiniciar() {
+      numeroSecreto = Math.floor(Math.random() * 10) + 1;
+      intentos = 3;
+      document.getElementById("mensaje").textContent = "";
+      document.getElementById("entrada").value = "";
+    }
+  </script>
+
+</body>
+</html>
