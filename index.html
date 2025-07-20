@@ -2,132 +2,189 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Adivina el Número Pro</title>
+  <title>¿Qué número tengo en mente?</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    * { box-sizing: border-box; }
     body {
       margin: 0;
       padding: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to bottom, #121212, #1f1f1f);
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(to bottom, #111, #222);
       color: #fff;
       text-align: center;
     }
-
     .container {
       max-width: 400px;
-      margin: 50px auto;
+      margin: 60px auto;
+      background: #1e1e1e;
       padding: 30px;
-      background-color: #2c2c2c;
-      border-radius: 15px;
-      box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+      border-radius: 12px;
+      box-shadow: 0 0 15px #0ff4;
     }
-
     h1 {
-      margin-bottom: 20px;
       color: #0ff;
+      margin-bottom: 10px;
     }
-
-    input[type="number"] {
-      padding: 10px;
+    input[type=number] {
       width: 80%;
+      padding: 10px;
       font-size: 1.2em;
-      border: none;
       border-radius: 8px;
+      border: none;
       margin-bottom: 20px;
     }
-
     button {
       padding: 10px 20px;
-      font-size: 1.1em;
+      background: #0ff;
       border: none;
       border-radius: 10px;
-      background: #0ff;
-      color: #000;
+      font-weight: bold;
+      font-size: 1em;
       cursor: pointer;
       transition: 0.3s;
     }
-
     button:hover {
-      background: #00cccc;
+      background: #00bbbb;
     }
-
     .message {
       margin-top: 20px;
-      font-size: 1.3em;
+      font-size: 1.2em;
       min-height: 40px;
-      transition: 0.3s ease-in-out;
+      transition: all 0.3s ease;
     }
-
-    .correct {
-      color: #00ff88;
+    .message.error {
+      color: #f66;
+      animation: shake 0.3s ease;
+    }
+    .message.success {
+      color: #0f0;
       font-weight: bold;
     }
-
-    .wrong {
-      color: #ff4444;
+    @keyframes shake {
+      0% { transform: translateX(-5px); }
+      50% { transform: translateX(5px); }
+      100% { transform: translateX(0); }
     }
-
-    .hint {
-      font-size: 0.9em;
-      opacity: 0.7;
+    .timer {
+      font-size: 1.1em;
+      margin-top: 10px;
+      color: #ff0;
+    }
+    .result {
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #0f0;
+      margin-top: 30px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Adivina el Número Pro</h1>
-    <p>Estoy pensando en un número del 1 al 100</p>
-    <input type="number" id="guessInput" placeholder="Tu número aquí" />
-    <br />
+    <h1>¿Qué número tengo en mente?</h1>
+    <p>Entre 1 y 100. Tienes 30 segundos.</p>
+    <input type="number" id="guess" placeholder="Intenta adivinar..." />
+    <br>
     <button onclick="checkGuess()">Probar</button>
+    <div class="timer" id="timer">⏳ 30</div>
     <div class="message" id="message"></div>
-    <div class="hint" id="hint"></div>
-    <br />
+    <div class="result" id="result"></div>
+    <br>
     <button onclick="resetGame()">Reiniciar</button>
   </div>
 
   <script>
-    let secretNumber = Math.floor(Math.random() * 100) + 1;
+    let secret = Math.floor(Math.random() * 100) + 1;
     let attempts = 0;
+    let timeLeft = 30;
+    let finished = false;
+    const message = document.getElementById("message");
+    const result = document.getElementById("result");
+    const timer = document.getElementById("timer");
+    const input = document.getElementById("guess");
+
+    const funnyHints = [
+      "¿Eso fue un número o un grito de ayuda?",
+      "Ni tu ex estuvo tan lejos...",
+      "JAJAJA... No.",
+      "¿Lo hiciste con los ojos cerrados?",
+      "Estás más frío que el corazón de mi suegra.",
+      "Por ahí… pero no.",
+      "Tibio, tibio… o eso crees.",
+      "Si aciertas, te hago famoso."
+    ];
 
     function checkGuess() {
-      const input = document.getElementById("guessInput");
-      const message = document.getElementById("message");
-      const hint = document.getElementById("hint");
+      if (finished) return;
       const guess = Number(input.value);
-
       if (!guess || guess < 1 || guess > 100) {
-        message.textContent = "Ingresa un número válido entre 1 y 100.";
-        message.className = "message wrong";
+        message.textContent = "¿Sabes contar, bro? Del 1 al 100.";
+        message.className = "message error";
         return;
       }
 
       attempts++;
-
-      if (guess === secretNumber) {
-        message.textContent = `🎉 ¡Correcto! El número era ${secretNumber}. Intentos: ${attempts}`;
-        message.className = "message correct";
-        hint.textContent = "";
+      if (guess === secret) {
+        message.textContent = "¡LO ADIVINASTE! Sos un GENIO.";
+        message.className = "message success";
+        finished = true;
+        showResult();
       } else {
-        message.textContent = guess < secretNumber ? "📈 Muy bajo..." : "📉 Muy alto...";
-        message.className = "message wrong";
-        hint.textContent = `Intentos: ${attempts}`;
+        const diff = Math.abs(guess - secret);
+        if (diff <= 5) {
+          message.textContent = "¡Caliente, caliente! 😰";
+        } else if (diff <= 15) {
+          message.textContent = "Tibio... 👀";
+        } else {
+          const troll = funnyHints[Math.floor(Math.random() * funnyHints.length)];
+          message.textContent = troll;
+        }
+        message.className = "message error";
       }
 
       input.value = "";
       input.focus();
     }
 
-    function resetGame() {
-      secretNumber = Math.floor(Math.random() * 100) + 1;
-      attempts = 0;
-      document.getElementById("message").textContent = "";
-      document.getElementById("message").className = "message";
-      document.getElementById("hint").textContent = "";
-      document.getElementById("guessInput").value = "";
+    function showResult() {
+      if (attempts === 1) {
+        result.textContent = "¡Un tiro, un genio!";
+      } else if (attempts <= 5) {
+        result.textContent = `👏 Nada mal. ${attempts} intentos.`;
+      } else {
+        result.textContent = `😂 ${attempts} intentos... pero lo lograste.`;
+      }
     }
+
+    function countdown() {
+      const interval = setInterval(() => {
+        if (finished) return clearInterval(interval);
+        timeLeft--;
+        timer.textContent = `⏳ ${timeLeft}`;
+
+        if (timeLeft <= 0) {
+          clearInterval(interval);
+          message.textContent = `⛔ Tiempo agotado. El número era ${secret}.`;
+          message.className = "message error";
+          finished = true;
+          result.textContent = "Volvé cuando tengas reflejos. 💀";
+        }
+      }, 1000);
+    }
+
+    function resetGame() {
+      secret = Math.floor(Math.random() * 100) + 1;
+      attempts = 0;
+      timeLeft = 30;
+      finished = false;
+      message.textContent = "";
+      result.textContent = "";
+      timer.textContent = "⏳ 30";
+      input.value = "";
+      input.focus();
+      countdown();
+    }
+
+    countdown();
   </script>
 </body>
 </html>
